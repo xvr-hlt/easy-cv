@@ -14,9 +14,6 @@ class ConvOffset2D(nn.Conv2d):
 
     Convolutional layer responsible for learning the 2D offsets and output the
     deformed feature map using bilinear interpolation
-
-    Note that this layer does not perform convolution on the deformed feature
-    map. See get_deform_cnn in cnn.py for usage
     """
 
     def __init__(self, filters, init_normal_stddev=0.01, **kwargs):

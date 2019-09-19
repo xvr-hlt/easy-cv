@@ -15,7 +15,8 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 REQUIRES = [
     'numpy==1.17.2',
-    'scipy==1.3.1'
+    'scipy==1.3.1',
+    'torch==1.2.0'
 ]
 
 setup(
