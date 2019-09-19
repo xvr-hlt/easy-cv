@@ -1,4 +1,30 @@
 import numpy as np
+from . import loss
+import torch
+
+
+class CenterNetLoss(torch.nn.Module):
+    def __init__(self, hm_weight=1., wh_weight=.1, offset_weight=1.):
+        super().__init__()
+        self.hm_weight = hm_weight
+        self.wh_weight = wh_weight
+        self.offset_weight = offset_weight
+        self.heatmap_loss = loss.FocalLoss()
+        self.wh_loss = loss.RegL1Loss()
+        self.offset_loss = loss.RegL1Loss()
+
+    def forward(self, output, batch):
+        output['hm'] = torch.clamp(output['hm'].sigmoid(), min=1e-5, max=1-1e-5)
+        hm_loss = self.heatmap_loss(output['hm'], batch['hm'])
+        wh_loss = self.wh_loss(output['size'], batch['size'], batch['mask']) if self.wh_weight else 0.
+        offset_loss = self.wh_loss(output['offset'], batch['offset'], batch['mask']) if self.offset_weight else 0.
+        loss = self.hm_weight * hm_loss + self.wh_weight * wh_loss + self.offset_weight * offset_loss
+        loss_stats = {'loss': loss, 'hm_loss': hm_loss}
+        if self.wh_weight:
+            loss_stats['wh_loss'] = wh_loss
+        if self.offset_weight:
+            loss_stats['offset_loss'] = offset_loss
+        return loss, loss_stats
 
 
 class CenterNetMixin(object):
@@ -6,6 +32,7 @@ class CenterNetMixin(object):
         self.min_gaussian_overlap = min_gaussian_overlap
         self.downscale_ratio = downscale_ratio
         self.n_classes = n_classes
+        self.loss = CenterNetLoss()
 
     def process(self, image, class_boxes):
         w, h, *_ = image.shape
