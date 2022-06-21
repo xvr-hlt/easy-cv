@@ -14,7 +14,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
     readme = f.read()
 
 REQUIRES = [
-    'numpy==1.17.2',
+    'numpy==1.22.0',
     'scipy==1.3.1',
     'torch==1.2.0'
 ]
